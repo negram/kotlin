@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPropertyGetterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.*
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtPsiBasedSymbolPointer
 import org.jetbrains.kotlin.idea.frontend.api.symbols.pointers.KtSymbolPointer
+import org.jetbrains.kotlin.idea.frontend.api.types.KtType
 
 internal class KtFirPropertyGetterSymbol(
     fir: FirPropertyAccessor,
@@ -52,6 +53,16 @@ internal class KtFirPropertyGetterSymbol(
     override val visibility: KtSymbolVisibility get() = firRef.withFir(FirResolvePhase.STATUS) { it.visibility.getSymbolVisibility() }
     override val annotations: List<KtAnnotationCall> by cached {
         firRef.toAnnotationsList()
+    }
+
+    override val dispatchType: KtType? by cached {
+        firRef.dispatchReceiverTypeAndAnnotations(builder)
+    }
+
+    override val isExtension: Boolean get() = firRef.withFir { it.receiverTypeRef != null }
+
+    override val receiverType: KtTypeAndAnnotations? by cached {
+        firRef.receiverTypeAndAnnotations(builder)
     }
 
     override fun createPointer(): KtSymbolPointer<KtPropertyGetterSymbol> {
